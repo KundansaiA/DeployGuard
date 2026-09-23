@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployguard-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deployguard-backend
+  template:
+    metadata:
+      labels:
+        app: deployguard-backend
+    spec:
+      containers:
+        - name: backend
+          image: deployguard-backend:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: deployguard-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deployguard-backend
+spec:
+  selector:
+    app: deployguard-backend
+  ports:
+    - port: 8000
+      targetPort: 8000

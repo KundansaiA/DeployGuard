@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: deployguard
+      POSTGRES_PASSWORD: deployguard
+      POSTGRES_DB: deployguard
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ../../backend
+    ports:
+      - "8000:8000"
+    environment:
+      DB_URL: postgresql://deployguard:deployguard@postgres:5432/deployguard
+      CORS_ORIGINS: "http://localhost:5173,http://127.0.0.1:5173"
+    depends_on:
+      - postgres
+    volumes:
+      - ../../backend:/app
+
+  frontend:
+    build:
+      context: ../../frontend
+      args:
+        # In local Docker Compose the frontend container reaches the backend
+        # via the host network (mapped to port 8000).
+        VITE_API_URL: "http://localhost:8000/api/v1"
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
